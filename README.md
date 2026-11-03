@@ -32,7 +32,7 @@ App chỉ nhận âm tiết tiếng Việt hợp lệ làm từ đã biết, nê
 
 ## Nguồn và giấy phép
 
-Gói gộp dữ liệu cộng đồng (đơn vị hành chính dvhcvn, câu Tatoeba, tần suất phụ đề OpenSubtitles qua FrequencyWords) và danh sách tự soạn;
+Gói gộp dữ liệu cộng đồng (đơn vị hành chính dvhcvn, câu Tatoeba, Wikipedia tiếng Việt, tần suất phụ đề OpenSubtitles qua FrequencyWords) và danh sách tự soạn;
 phát hành theo **GNU GPL v3**. Chi tiết ghi nguồn: `NGUON-VA-GIAY-PHEP.md`.
 
-Tạo lại dữ liệu cộng đồng: tải các tệp gốc rồi chạy `java TrichNguon.java <thư mục tải> <phrases.tsv>`, sau đó `java DongGoi.java dict-N`.
+Tạo lại dữ liệu cộng đồng: tải các tệp gốc rồi chạy `java TrichNguon.java <thư mục tải> <phrases.tsv>`; Wikipedia: `bzip2 -dc viwiki-latest-pages-articles1.xml-p1p832082.bz2 | java -Xmx6g TrichWiki.java <vi.dic> 400000` rồi giữ 150.000 dòng đầu của `nguon/cap-tu-wikipedia.txt`; sau đó `java DongGoi.java dict-N`.

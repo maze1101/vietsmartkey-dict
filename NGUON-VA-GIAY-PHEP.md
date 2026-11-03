@@ -7,6 +7,7 @@ CC BY-SA 4.0 cho phép phát hành lại dưới GPLv3; CC BY 2.0 chỉ yêu c�
 |---|---|---|
 | `hanh-chinh.txt` | Đơn vị hành chính Việt Nam – daohoangson/dvhcvn (https://github.com/daohoangson/dvhcvn) | GPLv3 |
 | `cap-tu-tatoeba.txt` | Câu tiếng Việt của Tatoeba (https://tatoeba.org), các cặp từ liền nhau xuất hiện từ 2 lần | CC BY 2.0 FR, © các thành viên Tatoeba |
+| `cap-tu-wikipedia.txt` | 150.000 cặp âm tiết liền nhau phổ biến nhất trong Wikipedia tiếng Việt (https://vi.wikipedia.org, bản kết xuất phần bài 1–832.082, 4,17 triệu câu), trích bằng `TrichWiki.java` | CC BY-SA 4.0, © người đóng góp Wikipedia |
 | `tu-ghep-phu-de.txt` | Tần suất từ phụ đề OpenSubtitles 2018 – hermitdave/FrequencyWords (https://github.com/hermitdave/FrequencyWords) | CC BY-SA 4.0 (dữ liệu), MIT (mã) |
 | `dia-danh.txt`, `ho-ten.txt`, `thuong-hieu.txt`, `tu-ghep.txt` | Tự soạn cho VietSmartKey | CC0 1.0 |
 
