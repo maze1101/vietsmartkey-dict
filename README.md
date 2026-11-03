@@ -18,6 +18,7 @@ Trong app: **Cài đặt › Chung › Từ điển mở rộng › Tải về /
 Dòng đầu: `VSKDICT<TAB>1<TAB><phiên bản><TAB><mô tả>`. Mỗi dòng sau:
 
 - `W<TAB>từ hoặc cụm từ[<TAB>độ phổ biến]` – từ ghép, dùng cho ngữ cảnh khi sửa lỗi gõ.
+- `B<TAB>cặp từ<TAB>số lần` – hai từ hay đi liền trong hội thoại (không phải từ ghép), chỉ làm ngữ cảnh phụ.
 - `N<TAB>Tên riêng` – tên viết hoa khi nhập giọng nói (giữ đúng kiểu chữ: iPhone, DiVit).
 
 App chỉ nhận âm tiết tiếng Việt hợp lệ làm từ đã biết, nên một gói sai không làm tắt chức năng sửa lỗi.
@@ -29,7 +30,9 @@ App chỉ nhận âm tiết tiếng Việt hợp lệ làm từ đã biết, nê
 2. Đóng gói (cần Java 17): `java DongGoi.java dict-2`
 3. Commit và đẩy lên GitHub. Bàn phím tải bản mới khi người dùng bấm **Tải về / cập nhật**.
 
-## Giấy phép
+## Nguồn và giấy phép
 
-Danh sách do dự án tự soạn từ kiến thức chung (tên địa danh, họ tên, thương hiệu là dữ kiện công khai),
-phát hành theo **CC0 1.0** (https://creativecommons.org/publicdomain/zero/1.0/). Tên thương hiệu thuộc về chủ sở hữu tương ứng.
+Gói gộp dữ liệu cộng đồng (đơn vị hành chính dvhcvn, câu Tatoeba, tần suất phụ đề OpenSubtitles qua FrequencyWords) và danh sách tự soạn;
+phát hành theo **GNU GPL v3**. Chi tiết ghi nguồn: `NGUON-VA-GIAY-PHEP.md`.
+
+Tạo lại dữ liệu cộng đồng: tải các tệp gốc rồi chạy `java TrichNguon.java <thư mục tải> <phrases.tsv>`, sau đó `java DongGoi.java dict-N`.
