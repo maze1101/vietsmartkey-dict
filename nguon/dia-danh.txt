@@ -1,0 +1,284 @@
+# Địa danh (N): mỗi dòng một tên, viết đúng chính tả. Tự soạn cho VietSmartKey.
+# Tỉnh thành sau sắp xếp 2025 và tên cũ vẫn hay dùng.
+Thành phố Hồ Chí Minh
+Hà Nội
+Huế
+Hải Phòng
+Đà Nẵng
+Cần Thơ
+Lai Châu
+Điện Biên
+Sơn La
+Lạng Sơn
+Quảng Ninh
+Thanh Hóa
+Nghệ An
+Hà Tĩnh
+Cao Bằng
+Tuyên Quang
+Lào Cai
+Thái Nguyên
+Phú Thọ
+Bắc Ninh
+Hưng Yên
+Ninh Bình
+Quảng Trị
+Quảng Ngãi
+Gia Lai
+Khánh Hòa
+Lâm Đồng
+Đắk Lắk
+Đồng Nai
+Tây Ninh
+Vĩnh Long
+Đồng Tháp
+Cà Mau
+An Giang
+Hà Giang
+Yên Bái
+Bắc Kạn
+Bắc Giang
+Vĩnh Phúc
+Hải Dương
+Thái Bình
+Nam Định
+Hà Nam
+Hòa Bình
+Quảng Bình
+Thừa Thiên Huế
+Quảng Nam
+Kon Tum
+Bình Định
+Phú Yên
+Ninh Thuận
+Bình Thuận
+Đắk Nông
+Bình Phước
+Bình Dương
+Bà Rịa Vũng Tàu
+Long An
+Tiền Giang
+Bến Tre
+Trà Vinh
+Hậu Giang
+Sóc Trăng
+Bạc Liêu
+Kiên Giang
+# Thành phố, thị xã, điểm du lịch
+Vũng Tàu
+Biên Hòa
+Thủ Dầu Một
+Nha Trang
+Đà Lạt
+Phan Thiết
+Mũi Né
+Quy Nhơn
+Tuy Hòa
+Buôn Ma Thuột
+Pleiku
+Hội An
+Tam Kỳ
+Đồng Hới
+Vinh
+Thanh Hóa
+Hạ Long
+Móng Cái
+Sa Pa
+Mộc Châu
+Tam Đảo
+Phú Quốc
+Côn Đảo
+Cát Bà
+Rạch Giá
+Hà Tiên
+Long Xuyên
+Châu Đốc
+Mỹ Tho
+Cao Lãnh
+Sa Đéc
+Tân An
+Bảo Lộc
+Cam Ranh
+Phan Rang
+Ninh Chữ
+Đồ Sơn
+Sầm Sơn
+Cửa Lò
+Lý Sơn
+Tây Nguyên
+Đồng bằng sông Cửu Long
+Miền Tây
+Miền Đông
+Bắc Bộ
+Trung Bộ
+Nam Bộ
+# Quận huyện, phường thường nói ở Thành phố Hồ Chí Minh
+Thủ Đức
+Gò Vấp
+Bình Thạnh
+Tân Bình
+Tân Phú
+Bình Tân
+Phú Nhuận
+Bình Chánh
+Củ Chi
+Hóc Môn
+Nhà Bè
+Cần Giờ
+Thảo Điền
+An Phú
+Bến Thành
+Chợ Lớn
+Tân Định
+Đa Kao
+Phú Mỹ Hưng
+Bình Quới
+Tân Sơn Nhất
+Phú Lâm
+Bình Hưng Hòa
+Linh Trung
+Hiệp Bình Chánh
+# Quận huyện ở Hà Nội
+Hoàn Kiếm
+Ba Đình
+Đống Đa
+Hai Bà Trưng
+Tây Hồ
+Cầu Giấy
+Thanh Xuân
+Hoàng Mai
+Long Biên
+Hà Đông
+Nam Từ Liêm
+Bắc Từ Liêm
+Gia Lâm
+Đông Anh
+Sóc Sơn
+Thanh Trì
+Mỹ Đình
+Hồ Gươm
+Hồ Hoàn Kiếm
+Hồ Tây
+Lăng Bác
+Văn Miếu
+Phố Cổ
+Nội Bài
+Long Thành
+# Đường phố, địa danh lịch sử thường gặp
+Trần Hưng Đạo
+Lê Lợi
+Lê Duẩn
+Lý Thường Kiệt
+Nguyễn Huệ
+Điện Biên Phủ
+Cách Mạng Tháng Tám
+Phạm Ngũ Lão
+Lê Thánh Tông
+Hai Bà Trưng
+Quang Trung
+Trường Chinh
+Nguyễn Văn Linh
+Võ Văn Kiệt
+Nguyễn Thị Minh Khai
+Lê Văn Sỹ
+Cộng Hòa
+Hoàng Văn Thụ
+Phan Đăng Lưu
+Xô Viết Nghệ Tĩnh
+Nam Kỳ Khởi Nghĩa
+Pasteur
+Đinh Tiên Hoàng
+Tôn Đức Thắng
+Hùng Vương
+An Dương Vương
+Bà Huyện Thanh Quan
+Phan Xích Long
+Nguyễn Trãi
+Kim Mã
+Giải Phóng
+Láng Hạ
+Xuân Thủy
+Phạm Văn Đồng
+Bến Nhà Rồng
+Dinh Độc Lập
+Nhà thờ Đức Bà
+Chợ Bến Thành
+Bưu điện Thành phố
+Hoàng Sa
+Trường Sa
+# Nước, vùng, thành phố thế giới
+Việt Nam
+Lào
+Campuchia
+Thái Lan
+Malaysia
+Singapore
+Indonesia
+Philippines
+Myanmar
+Trung Quốc
+Đài Loan
+Hồng Kông
+Ma Cao
+Nhật Bản
+Hàn Quốc
+Triều Tiên
+Ấn Độ
+Úc
+New Zealand
+Hoa Kỳ
+Canada
+Mexico
+Brazil
+Argentina
+Nga
+Ukraine
+Đức
+Pháp
+Anh Quốc
+Ý
+Tây Ban Nha
+Bồ Đào Nha
+Hà Lan
+Bỉ
+Thụy Sĩ
+Thụy Điển
+Na Uy
+Phần Lan
+Đan Mạch
+Ba Lan
+Séc
+Áo
+Hy Lạp
+Thổ Nhĩ Kỳ
+Ai Cập
+Nam Phi
+Dubai
+Ả Rập Xê Út
+Israel
+Châu Á
+Châu Âu
+Châu Phi
+Châu Mỹ
+Châu Úc
+Đông Nam Á
+Bắc Kinh
+Thượng Hải
+Quảng Châu
+Thâm Quyến
+Tokyo
+Osaka
+Kyoto
+Seoul
+Busan
+Bangkok
+Paris
+London
+Berlin
+Moscow
+New York
+Los Angeles
+San Francisco
+Sydney
+Melbourne
+Toronto
