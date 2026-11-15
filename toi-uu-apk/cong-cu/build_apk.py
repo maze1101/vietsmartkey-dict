@@ -10,6 +10,7 @@ RENAME = {
     'vn.personal.vietkey.androidx-startup': 'vn.personal.vietkey.fast.androidx-startup',
     'vn.personal.vietkey.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION': 'vn.personal.vietkey.fast.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION',
     'VietSmartKey': 'VietSmartKey Fast',
+    '0.56': '0.57-fast',
     'VietSmartKey \u00b7 Ti\u1ebfng Vi\u1ec7t': 'VietSmartKey Fast \u00b7 Ti\u1ebfng Vi\u1ec7t',
 }
 
@@ -56,6 +57,9 @@ zout = zipfile.ZipFile(out, 'w')
 for info in zin.infolist():
     name = info.filename
     if name.startswith('assets/dexopt/'):
+        continue
+    # tep thua: thong tin phien ban thu vien (chi Play Console doc) va du lieu debug coroutines
+    if name == 'DebugProbesKt.bin' or (name.startswith('META-INF/') and name.endswith('.version')):
         continue  # baseline profile cua dex cu (checksum khong con khop)
     data = zin.read(name)
     if name == 'classes.dex':

@@ -221,4 +221,5 @@ if k != 2:
 write('KeyboardView', s)
 log.append('ellipsize cached (%d)' % k)
 
+exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'patch_extra.py'), encoding='utf-8').read())
 print('\n'.join(log))

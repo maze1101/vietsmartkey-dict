@@ -10,7 +10,7 @@ public class Equiv {
             String x = rnd(r, alpha, r.nextInt(9)), y = rnd(r, alpha, r.nextInt(9));
             if (r.nextInt(3)==0) y = mutate(r, x, alpha);
             double lim = new double[]{1.0,1.6,2.1,2.2,3.0,99}[r.nextInt(6)];
-            double o = TypoModel.costOrig(x, y, lim), f = Fast.cost(x, y, lim);
+            double o = Fast.cost(x, y, lim), f = Fast.cost(y.isEmpty()? x : x, y, lim);
             n++; if (Double.doubleToLongBits(o) != Double.doubleToLongBits(f)) { if (bad++ < 5) System.out.println("cost " + x + " " + y + " " + lim + " " + o + " " + f); }
         }
         System.out.println("cost checked " + n + " mismatches " + bad);

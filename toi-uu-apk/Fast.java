@@ -1,6 +1,9 @@
 package vn.personal.vietkey;
 
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.text.TextPaint;
@@ -641,5 +644,70 @@ public final class Fast {
         e.out = out;
         ELL.put(key, e);
         return out;
+    }
+
+    // ---------------------------------------------------------------- nhan giu phim chu -> so / ky hieu (kieu Laban Key)
+    static final String LP_KEYS = "qwertyuiopasdfghjklzxcvbnm";
+    static final String[] LP_SYMS = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+            "@", "#", "$", "%", "&", "-", "+", "(", ")",
+            "*", "\"", "'", ":", ";", "!", "?"};
+    private static int lpSeq;
+    private static Paint HINT;
+
+    static boolean longPressOn(KeyboardView v) {
+        return v.prefs().getBoolean("longPressSymbols", true);
+    }
+
+    static String symbolFor(KeyboardView.Key k) {
+        if (k == null || k.special || k.code == null || k.code.length() != 1) return null;
+        int i = LP_KEYS.indexOf(k.code.charAt(0));
+        return i < 0 ? null : LP_SYMS[i];
+    }
+
+    /** Goi cuoi nhanh ACTION_DOWN cua KeyboardView.onTouchEvent. */
+    public static void onKeyDown(final KeyboardView v) {
+        final int my = ++lpSeq;
+        final KeyboardView.Key k = v.pressed;
+        VietKeyboardService s = v.service;
+        if (k == null || s == null || s.page != 0 || s.numericOnly) return;
+        final String sym = symbolFor(k);
+        if (sym == null || !longPressOn(v)) return;
+        int delay = Math.max(250, Math.min(650, v.prefs().getInt("holdDelay", 380)));
+        v.handler.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (my != lpSeq || v.pressed != k || v.swiping || v.longAction || v.cursorMoved) return;
+                v.longAction = true; // nha tay ra se khong go them chu cai
+                if (v.haptic) v.performHapticFeedback(0);
+                v.service.key(sym);
+                v.invalidate();
+            }
+        }, delay);
+    }
+
+    /** Ve so / ky hieu nho o goc phai tren moi phim chu (goi trong onDraw, truoc o phong to). */
+    public static void drawHints(KeyboardView v, Canvas c) {
+        VietKeyboardService s = v.service;
+        if (s == null || s.page != 0 || !longPressOn(v)) return;
+        if (HINT == null) HINT = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float size = v.dp(9.5f) * v.fontScale;
+        HINT.setTextSize(size);
+        HINT.setTypeface(Typeface.DEFAULT);
+        HINT.setTextAlign(Paint.Align.RIGHT);
+        HINT.setColor(themeColor(v, "themeText", v.dark ? 0xFFF2F6FF : 0xFF1B283C));
+        HINT.setAlpha(v.dark ? 120 : 110);
+        KeyboardView.Key pr = v.popup ? v.pressed : null;
+        RectF zone = null;
+        if (pr != null && pr.r != null) {
+            float w = pr.r.width();
+            zone = new RectF(pr.r.left - w * 0.4f, pr.r.top - pr.r.height() * 1.6f, pr.r.right + w * 0.4f, pr.r.top + 1);
+        }
+        ArrayList<KeyboardView.Key> keys = v.keys;
+        for (int i = 0, n = keys.size(); i < n; i++) {
+            KeyboardView.Key k = keys.get(i);
+            String sym = symbolFor(k);
+            if (sym == null || k.r == null) continue;
+            if (zone != null && k != pr && RectF.intersects(zone, k.r)) continue; // khong ve de len o phong to
+            c.drawText(sym, k.r.right - v.dp(4.5f), k.r.top + v.dp(2.5f) + size, HINT);
+        }
     }
 }

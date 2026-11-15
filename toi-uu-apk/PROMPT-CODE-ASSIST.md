@@ -63,3 +63,15 @@ Build bản release (R8 bật). Cài lên máy, gõ thử một đoạn văn b�
 - Đổi chủ đề thì màu bàn phím đổi theo.
 
 ---
+
+## F. (Bản 0.57-fast) Nhấn giữ phím chữ để gõ số / ký hiệu, kiểu Laban Key
+1. `KeyboardView.onTouchEvent`: ở cuối nhánh `ACTION_DOWN`, ngay trước `invalidate(); return true;`,
+   gọi `Fast.onKeyDown(this);`.
+2. `KeyboardView.onDraw`: ngay trước đoạn `if (this.popup && …) drawPreview(…)`, gọi `Fast.drawHints(this, canvas);`.
+3. Bỏ `private` ở các thành phần `pressed`, `longAction`, `swiping`, `cursorMoved`, `haptic`, `popup`,
+   `handler`, `service`, `keys`, `fontScale`, `dark`, `dp()` của KeyboardView, và `code`, `r`,
+   `special` của `KeyboardView.Key`.
+4. `SettingsActivity`, ngay sau dòng toggle "Vuốt để gõ", thêm:
+   `toggle(page, "Nhấn giữ phím chữ để gõ số & ký hiệu (như Laban Key)", "longPressSymbols", true);`
+5. Thời gian giữ dùng chung thanh trượt "Giữ để xóa liên tục" (`holdDelay`, giới hạn 250–650 ms).
+   Hàng trên: q→1 … p→0. Hàng giữa: a@ s# d$ f% g& h- j+ k( l). Hàng dưới: z* x" c' v: b; n! m?

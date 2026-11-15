@@ -123,3 +123,13 @@ java ... Sign <keystore> <mật-khẩu.txt> unsigned.apk VietSmartKey-0.56-fast.
 ```
 `build_apk.py` giữ nguyên các tệp khác, căn chỉnh 4 byte cho tệp không nén, và bỏ
 `assets/dexopt/baseline.prof` (profile của dex cũ, checksum không còn khớp).
+
+## 8. Bản 0.57-fast (versionCode 64, gói `vn.personal.vietkey.fast`)
+- Cài đè lên "VietSmartKey Fast" 0.56, vì cùng gói và cùng khoá ký. Kiểm tra bằng `cong-cu/Cert.java`:
+  chứng chỉ SHA-256 của hai bản trùng nhau, `c66b7593…128ba8ef`.
+- **Mới:** nhấn giữ phím chữ để gõ số hoặc ký hiệu, có chữ gợi ý nhỏ ở góc phím (giống Laban Key).
+  Bật/tắt ở Cài đặt › Vuốt & chạm. Thời gian giữ dùng chung thanh "Giữ để xóa liên tục".
+- **Dọn code/dữ liệu thừa:** bỏ 3 hàm gốc không còn được gọi (`suggestOrig`, `nextKeyOddsOrig`,
+  `costOrig`), `DebugProbesKt.bin`, 33 tệp `META-INF/*.version` và baseline profile cũ.
+- Logic gợi ý và sửa lỗi giống hệt bản 0.56-fast: cùng kết quả từng phím, cùng tỉ lệ tự sửa
+  64,7%, từ gõ đúng vẫn giữ đúng 100%.
