@@ -133,3 +133,44 @@ java ... Sign <keystore> <mật-khẩu.txt> unsigned.apk VietSmartKey-0.56-fast.
   `costOrig`), `DebugProbesKt.bin`, 33 tệp `META-INF/*.version` và baseline profile cũ.
 - Logic gợi ý và sửa lỗi giống hệt bản 0.56-fast: cùng kết quả từng phím, cùng tỉ lệ tự sửa
   64,7%, từ gõ đúng vẫn giữ đúng 100%.
+
+## 9. Bản 0.58-fast (versionCode 65): đoán từ, sửa lỗi, học thói quen
+
+Bản này cài đè lên 0.57-fast (cùng khoá ký). Tính năng nhấn giữ phím và chữ gợi ý ở góc phím đã
+bỏ, để bàn phím sạch.
+
+Số đo trên văn bản tiếng Việt thật, độc lập với dữ liệu của app: 1.123 câu báo chí của
+UD Vietnamese-VTB, 27.313 từ.
+
+**Đoán từ.** Bản cũ không dùng 150.000 cặp từ Wikipedia/Tatoeba trong từ điển mở rộng để đoán từ
+(chỉ dùng cho phần sửa lỗi). Bản mới có dùng.
+
+| Từ đúng nằm trong 3 gợi ý | Bản cũ | 0.58-fast |
+|---|---|---|
+| Chưa gõ phím nào (đoán từ tiếp theo) | 8,9% | 12,4% |
+| Sau 1 phím | 29,0% | 39,7% |
+| Sau 2 phím | 47,4% | 59,5% |
+| Sau 3 phím | 63,9% | 74,3% |
+| Số phím tiết kiệm được | 33,0% | 41,4% |
+
+**Sửa lỗi gõ** (6.000 từ, mỗi từ một lỗi ngẫu nhiên, chỉ tính lỗi tạo ra chữ vô nghĩa):
+
+| | Logic gốc | 0.58-fast |
+|---|---|---|
+| Tự sửa đúng | 74,5% | 78,0% |
+| Đảo 2 chữ được sửa đúng | 92,3% | 93,3% |
+| Bị sửa thành từ khác | 2,4% | 3,2% |
+| Từ gõ đúng bị sửa nhầm | 0,02% | 0,02% |
+
+**Học thói quen.** Bản cũ học mọi chữ đã gõ. Gõ nhầm cùng một kiểu 3 lần là chữ đó thành "từ đã
+biết": không bao giờ được sửa nữa, lại còn xuất hiện trong gợi ý. Bản mới chỉ tự học:
+- âm tiết tiếng Việt hợp lệ,
+- từ đã có trong từ điển,
+- từ tiếng Anh.
+
+Chữ anh chủ động giữ lại (nhấn xoá để hoàn tác lần sửa, hoặc chọn chữ gốc trên thanh gợi ý) vẫn
+được học như cũ.
+
+**Đã thử nhưng không dùng**, vì sửa thêm được bao nhiêu thì sửa sai cũng tăng gần bằng ấy:
+- nới ngưỡng cho chữ đúng cấu trúc âm tiết nhưng không có nghĩa;
+- nới ngưỡng thêm (0,5 và 0,4) cho chữ vô nghĩa.

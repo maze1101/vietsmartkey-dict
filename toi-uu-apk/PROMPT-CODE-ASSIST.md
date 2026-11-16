@@ -64,14 +64,11 @@ Build bản release (R8 bật). Cài lên máy, gõ thử một đoạn văn b�
 
 ---
 
-## F. (Bản 0.57-fast) Nhấn giữ phím chữ để gõ số / ký hiệu, kiểu Laban Key
-1. `KeyboardView.onTouchEvent`: ở cuối nhánh `ACTION_DOWN`, ngay trước `invalidate(); return true;`,
-   gọi `Fast.onKeyDown(this);`.
-2. `KeyboardView.onDraw`: ngay trước đoạn `if (this.popup && …) drawPreview(…)`, gọi `Fast.drawHints(this, canvas);`.
-3. Bỏ `private` ở các thành phần `pressed`, `longAction`, `swiping`, `cursorMoved`, `haptic`, `popup`,
-   `handler`, `service`, `keys`, `fontScale`, `dark`, `dp()` của KeyboardView, và `code`, `r`,
-   `special` của `KeyboardView.Key`.
-4. `SettingsActivity`, ngay sau dòng toggle "Vuốt để gõ", thêm:
-   `toggle(page, "Nhấn giữ phím chữ để gõ số & ký hiệu (như Laban Key)", "longPressSymbols", true);`
-5. Thời gian giữ dùng chung thanh trượt "Giữ để xóa liên tục" (`holdDelay`, giới hạn 250–650 ms).
-   Hàng trên: q→1 … p→0. Hàng giữa: a@ s# d$ f% g& h- j+ k( l). Hàng dưới: z* x" c' v: b; n! m?
+## F. (Bản 0.58-fast) Đoán từ theo ngữ cảnh và học thói quen
+1. Không cần sửa thêm gì cho phần đoán từ: `Fast.suggest` đã tự dùng `contextNext` (các cặp từ
+   Wikipedia/Tatoeba trong từ điển mở rộng). Hằng `Fast.ctxWeight = 14`, và luôn giữ 1 ô cho từ
+   phổ biến nhất theo cách xếp hạng cũ.
+2. `VietKeyboardService.remember(String,String)`: đổi tên hàm gốc thành `rememberOrig`, thêm hàm
+   `remember(a, b) { Fast.remember(this, a, b); }`. Bỏ `private` ở `ForeignWords.english`.
+   Từ nay app chỉ tự học âm tiết tiếng Việt hợp lệ, từ đã biết, hoặc từ tiếng Anh. Chữ gõ nhầm
+   không được học nữa.

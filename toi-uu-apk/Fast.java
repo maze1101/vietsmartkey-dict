@@ -1,9 +1,6 @@
 package vn.personal.vietkey;
 
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.text.TextPaint;
@@ -285,6 +282,10 @@ public final class Fast {
     private static List<PersonalData.Candidate> memoResult;
     static volatile int macroGen;
     public static boolean memoEnabled = true;
+    /** Trong so cap tu ngu canh khi doan tu (0 = nhu ban goc). */
+    public static double ctxWeight = 12.0;
+    public static boolean reserveSlot = true;
+    public static int ctxMin = 1;
 
     public static void macrosChanged() {
         macroGen++;
@@ -368,6 +369,18 @@ public final class Fast {
                 list.add(new PersonalData.Candidate(key, false, e.getValue().intValue() * 5 + 20));
             }
         }
+        // Cap tu hay di lien (Wikipedia/Tatoeba trong tu dien mo rong): ban goc chi dung de sua loi,
+        // o day dung them de doan tu tiep theo va xep hang tu dang go do.
+        HashMap<String, Integer> ctx = ctxWeight > 0 ? d.contextNext.get(lower2) : null;
+        if (ctx != null) {
+            for (Map.Entry<String, Integer> e : ctx.entrySet()) {
+                String key = e.getKey();
+                if (e.getValue().intValue() >= ctxMin && !key.equalsIgnoreCase(str2)
+                        && (foldEmpty || fold(key).startsWith(strFold)) && seen.add(key)) {
+                    list.add(new PersonalData.Candidate(key, false, 0));
+                }
+            }
+        }
         LearnedModel learned = d.learned;
         Iterator<Map.Entry<String, Integer>> it = learned.words.entrySet().iterator();
         while (it.hasNext()) {
@@ -379,12 +392,20 @@ public final class Fast {
                 list.add(new PersonalData.Candidate(key2, false, 100));
             }
         }
+        java.util.IdentityHashMap<PersonalData.Candidate, Integer> boosted = new java.util.IdentityHashMap<>();
         for (int a = 0; a < list.size(); a++) {
             PersonalData.Candidate c = list.get(a);
             if (!c.macro) {
                 String t = c.text;
-                list.set(a, new PersonalData.Candidate(t, false, learned.pairCount(lower2, c.text) * 250
-                        + learned.count(c.text) * 20 + d.frequencies.score(t) + c.score));
+                int bonus = 0;
+                if (ctx != null) {
+                    Integer n = ctx.get(t.toLowerCase(Locale.ROOT));
+                    if (n != null && n.intValue() >= ctxMin) bonus = (int) Math.round(ctxWeight * Math.log1p(n.intValue()));
+                }
+                int base = learned.pairCount(lower2, c.text) * 250 + learned.count(c.text) * 20 + d.frequencies.score(t) + c.score;
+                PersonalData.Candidate nc = new PersonalData.Candidate(t, false, base + bonus);
+                list.set(a, nc);
+                if (bonus > 0) boosted.put(nc, base);
             }
         }
         HashMap<String, PersonalData.Candidate> best = new HashMap<>();
@@ -396,8 +417,20 @@ public final class Fast {
         }
         ArrayList<PersonalData.Candidate> sorted = new ArrayList<>(best.values());
         sorted.sort(BY_SCORE);
+        ArrayList<PersonalData.Candidate> top = new ArrayList<>(sorted.subList(0, Math.min(i, sorted.size())));
+        if (ctx != null && reserveSlot && i >= 3 && top.size() == i) {
+            // Giu 1 o cho tu manh nhat theo cach xep cu (khong tinh ngu canh): cau la van doan duoc
+            PersonalData.Candidate plain = null;
+            int ps = Integer.MIN_VALUE;
+            for (PersonalData.Candidate c : sorted) {
+                Integer b = boosted.get(c);
+                int sc = b != null ? b.intValue() : c.score;
+                if (sc > ps) { ps = sc; plain = c; }
+            }
+            if (plain != null && !top.contains(plain)) top.set(i - 1, plain);
+        }
         ArrayList<PersonalData.Candidate> out = new ArrayList<>();
-        for (PersonalData.Candidate c : sorted.subList(0, Math.min(i, sorted.size()))) {
+        for (PersonalData.Candidate c : top) {
             if (!c.macro && !str2.isEmpty()) c = new PersonalData.Candidate(PersonalData.preserveCase(str2, c.text), false, c.score);
             out.add(c);
         }
@@ -450,6 +483,8 @@ public final class Fast {
     private static String corrA, corrB, corrC, corrResult;
     private static int corrMethod, corrVersion, corrStrength = -1;
     public static boolean relaxInvalid = true;
+    /** Ap dung ca khi chu go ra dung cau truc am tiet nhung khong co trong tieng Viet (vd "nòa", "tịa"). */
+    public static boolean relaxUnknownValid = false;
 
     /**
      * = PersonalData.correct(), them mot buoc: o muc "Vua", neu chu go ra KHONG phai am tiet tieng Viet hop le
@@ -465,7 +500,7 @@ public final class Fast {
         }
         String r = d.correctOrig(raw, word, prev, method);
         if (relaxInvalid && strength == 1 && r.equals(word) && word.length() >= 2
-                && !TypoModel.validSyllable(word) && !d.known(word)) {
+                && (relaxUnknownValid || !TypoModel.validSyllable(word)) && !d.known(word)) {
             d.strength = 2;
             try {
                 r = d.correctOrig(raw, word, prev, method);
@@ -646,68 +681,33 @@ public final class Fast {
         return out;
     }
 
-    // ---------------------------------------------------------------- nhan giu phim chu -> so / ky hieu (kieu Laban Key)
-    static final String LP_KEYS = "qwertyuiopasdfghjklzxcvbnm";
-    static final String[] LP_SYMS = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-            "@", "#", "$", "%", "&", "-", "+", "(", ")",
-            "*", "\"", "'", ":", ";", "!", "?"};
-    private static int lpSeq;
-    private static Paint HINT;
+    // ---------------------------------------------------------------- hoc thoi quen: khong hoc chu go nham
+    public static boolean learnFilter = true;
 
-    static boolean longPressOn(KeyboardView v) {
-        return v.prefs().getBoolean("longPressSymbols", true);
+    /** true neu nen hoc tu nay: am tiet tieng Viet hop le, tu da biet, hoac tu tieng Anh. */
+    public static boolean worthLearning(VietKeyboardService s, String word) {
+        return worthLearning(s.data, s.foreign, word);
     }
 
-    static String symbolFor(KeyboardView.Key k) {
-        if (k == null || k.special || k.code == null || k.code.length() != 1) return null;
-        int i = LP_KEYS.indexOf(k.code.charAt(0));
-        return i < 0 ? null : LP_SYMS[i];
+    public static boolean worthLearning(PersonalData d, ForeignWords f, String word) {
+        if (!learnFilter || word == null) return true;
+        String w = word.trim().toLowerCase(Locale.ROOT);
+        if (w.isEmpty()) return true;
+        int end = w.length();
+        while (end > 0 && ".,?!:;".indexOf(w.charAt(end - 1)) >= 0) end--;
+        w = w.substring(0, end);
+        if (w.isEmpty() || TypoModel.validSyllable(w)) return true;
+        if (d != null && d.known(w)) return true;
+        return f != null && f.english.score(w) >= 5;
     }
 
-    /** Goi cuoi nhanh ACTION_DOWN cua KeyboardView.onTouchEvent. */
-    public static void onKeyDown(final KeyboardView v) {
-        final int my = ++lpSeq;
-        final KeyboardView.Key k = v.pressed;
-        VietKeyboardService s = v.service;
-        if (k == null || s == null || s.page != 0 || s.numericOnly) return;
-        final String sym = symbolFor(k);
-        if (sym == null || !longPressOn(v)) return;
-        int delay = Math.max(250, Math.min(650, v.prefs().getInt("holdDelay", 380)));
-        v.handler.postDelayed(new Runnable() {
-            @Override public void run() {
-                if (my != lpSeq || v.pressed != k || v.swiping || v.longAction || v.cursorMoved) return;
-                v.longAction = true; // nha tay ra se khong go them chu cai
-                if (v.haptic) v.performHapticFeedback(0);
-                v.service.key(sym);
-                v.invalidate();
-            }
-        }, delay);
-    }
-
-    /** Ve so / ky hieu nho o goc phai tren moi phim chu (goi trong onDraw, truoc o phong to). */
-    public static void drawHints(KeyboardView v, Canvas c) {
-        VietKeyboardService s = v.service;
-        if (s == null || s.page != 0 || !longPressOn(v)) return;
-        if (HINT == null) HINT = new Paint(Paint.ANTI_ALIAS_FLAG);
-        float size = v.dp(9.5f) * v.fontScale;
-        HINT.setTextSize(size);
-        HINT.setTypeface(Typeface.DEFAULT);
-        HINT.setTextAlign(Paint.Align.RIGHT);
-        HINT.setColor(themeColor(v, "themeText", v.dark ? 0xFFF2F6FF : 0xFF1B283C));
-        HINT.setAlpha(v.dark ? 120 : 110);
-        KeyboardView.Key pr = v.popup ? v.pressed : null;
-        RectF zone = null;
-        if (pr != null && pr.r != null) {
-            float w = pr.r.width();
-            zone = new RectF(pr.r.left - w * 0.4f, pr.r.top - pr.r.height() * 1.6f, pr.r.right + w * 0.4f, pr.r.top + 1);
-        }
-        ArrayList<KeyboardView.Key> keys = v.keys;
-        for (int i = 0, n = keys.size(); i < n; i++) {
-            KeyboardView.Key k = keys.get(i);
-            String sym = symbolFor(k);
-            if (sym == null || k.r == null) continue;
-            if (zone != null && k != pr && RectF.intersects(zone, k.r)) continue; // khong ve de len o phong to
-            c.drawText(sym, k.r.right - v.dp(4.5f), k.r.top + v.dp(2.5f) + size, HINT);
+    /** = VietKeyboardService.remember(), nhung bo qua chu go nham (khong phai am tiet, khong co trong tu dien). */
+    public static void remember(VietKeyboardService s, String prev, String word) {
+        if (worthLearning(s, word)) {
+            s.rememberOrig(prev, word);
+        } else {
+            s.learnedPrevious = "";
+            s.learnedWord = "";
         }
     }
 }
