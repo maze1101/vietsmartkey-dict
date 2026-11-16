@@ -174,3 +174,9 @@ Chữ anh chủ động giữ lại (nhấn xoá để hoàn tác lần sửa, h
 **Đã thử nhưng không dùng**, vì sửa thêm được bao nhiêu thì sửa sai cũng tăng gần bằng ấy:
 - nới ngưỡng cho chữ đúng cấu trúc âm tiết nhưng không có nghĩa;
 - nới ngưỡng thêm (0,5 và 0,4) cho chữ vô nghĩa.
+
+## 10. Bản 0.58.1-fast (versionCode 66): sửa icon
+Bản đổi tên gói trước chỉ đổi tên gói trong `AndroidManifest.xml`, còn bảng tài nguyên
+(`resources.arsc`) vẫn mang tên `vn.personal.vietkey`. Launcher nào tra icon theo tên gói sẽ không
+khớp (MagicOS vẽ icon thành ô vuông nền trắng). Bản này đổi luôn tên gói trong bảng tài nguyên
+thành `vn.personal.vietkey.fast`. Code của app không tra tài nguyên theo tên, nên không ảnh hưởng gì.

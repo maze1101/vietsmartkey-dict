@@ -10,7 +10,7 @@ RENAME = {
     'vn.personal.vietkey.androidx-startup': 'vn.personal.vietkey.fast.androidx-startup',
     'vn.personal.vietkey.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION': 'vn.personal.vietkey.fast.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION',
     'VietSmartKey': 'VietSmartKey Fast',
-    '0.56': '0.58-fast',
+    '0.56': '0.58.1-fast',
     'VietSmartKey \u00b7 Ti\u1ebfng Vi\u1ec7t': 'VietSmartKey Fast \u00b7 Ti\u1ebfng Vi\u1ec7t',
 }
 
@@ -52,6 +52,22 @@ def patch_manifest(b, code):
         p += csz
     raise SystemExit('manifest element not found')
 
+def rename_arsc(b, old, new):
+    # ResTable_package: header(8) id(4) name[128] UTF-16, fixed size
+    t, hs, size, npk = struct.unpack_from('<HHII', b, 0)
+    p = hs
+    p += struct.unpack_from('<HHI', b, p)[2]  # global string pool
+    ct, chs, csz, pid = struct.unpack_from('<HHII', b, p)
+    assert ct == 0x0200 and npk == 1
+    name = b[p + 12:p + 12 + 256].decode('utf-16le').rstrip('\x00')
+    assert name == old, name
+    enc = new.encode('utf-16le')
+    assert len(enc) < 256
+    b = bytearray(b)
+    b[p + 12:p + 12 + 256] = enc + b'\0' * (256 - len(enc))
+    print('resources.arsc package', old, '->', new)
+    return bytes(b)
+
 zin = zipfile.ZipFile(src)
 zout = zipfile.ZipFile(out, 'w')
 for info in zin.infolist():
@@ -64,6 +80,8 @@ for info in zin.infolist():
     data = zin.read(name)
     if name == 'classes.dex':
         data = open(dex, 'rb').read()
+    if name == 'resources.arsc' and rename:
+        data = rename_arsc(data, 'vn.personal.vietkey', RENAME['vn.personal.vietkey'])
     if name == 'AndroidManifest.xml' and rename:
         data, ch = axml_rename.rewrite(data, RENAME)
         for a, b2 in ch: print('rename', repr(a), '->', repr(b2))
