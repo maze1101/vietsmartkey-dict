@@ -10,7 +10,7 @@ RENAME = {
     'vn.personal.vietkey.androidx-startup': 'vn.personal.vietkey.fast.androidx-startup',
     'vn.personal.vietkey.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION': 'vn.personal.vietkey.fast.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION',
     'VietSmartKey': 'VietSmartKey Fast',
-    '0.56': '0.62-fast',
+    '0.56': '0.63-fast',
     'VietSmartKey \u00b7 Ti\u1ebfng Vi\u1ec7t': 'VietSmartKey Fast \u00b7 Ti\u1ebfng Vi\u1ec7t',
 }
 

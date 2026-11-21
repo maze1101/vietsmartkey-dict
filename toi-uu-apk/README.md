@@ -255,3 +255,19 @@ Kiểm tra bằng `do-kiem/PauseTest.java`: 7/7 tình huống đúng, ví dụ "
 
 Ví dụ (`do-kiem/GPTest.java`): "Anh ơi, tối nay mấy giờ anh về? Em nấu cơm rồi." · "Dạ, em
 gửi rồi ạ. Anh kiểm tra giúp em, nhưng file hơi nặng."
+
+## 15. Bản 0.63-fast (versionCode 71): bớt khoảng "điếc" giữa các câu
+
+Đọc nhật ký lần 2 thấy:
+- Sau mỗi câu, app tạo bộ nhận mới ngay khi bộ cũ còn đang đóng, nên Google báo `lỗi 11`
+  (có từ bản gốc). App phải chờ thêm 0,5 giây, tổng cộng khoảng 0,8 giây mic không nghe.
+  Chữ nói trong khoảng đó bị mất, ví dụ "…vậy **chị**?" mất chữ "chị".
+- Khi `lỗi 7` và `lỗi 11` liền nhau, app tưởng Google hỏng và tự chuyển sang bộ nhận "trên máy".
+
+Đã sửa:
+- `again()`: đóng bộ nhận cũ ngay khi có kết quả, 400 ms sau mới mở lượt mới.
+- `onError(11)`: thử lại nhanh, không tính là lỗi và không đổi bộ nhận (tối đa 5 lần liên tiếp).
+- Lượt chỉ gồm lời gọi hoặc tiểu từ ("Chị.", "Anh ạ.", "Nhé.") được ghép vào cuối câu trước:
+  "…khi nào chị đến vậy chị?".
+- Nhận câu hỏi khi có lời gọi ở đầu hoặc cuối câu: "Thần ơi, sao không thấy mình đến thuê đồ anh ơi?".
+- `cong-cu/build.sh` thêm `set -o pipefail`, để bước vá smali lỗi thì dừng hẳn, không ra dex thiếu.

@@ -724,6 +724,7 @@ public final class Fast {
         if (log) VoiceInput.log(s, "Google: " + cut(text) + (pauses.isEmpty() ? "" : "  [ngat: " + pauses + "]"));
         if (text != null) text = pauseCommas(s.data, text, pauses);
         resetPauses();
+        err11 = 0;
         if (text != null) text = googlePunctuation(s, text);
         s.voiceCommitOrig(text);
         if (log) {
@@ -870,6 +871,7 @@ public final class Fast {
 
     /** = VietKeyboardService.voicePartial(); ghi nhan nhip ngung de dat dau phay. */
     public static void voicePartial(VietKeyboardService s, String text) {
+        if (text != null && !text.isEmpty()) err11 = 0;
         notePartial(text, android.os.SystemClock.uptimeMillis());
         s.voicePartialOrig(text);
     }
@@ -897,8 +899,12 @@ public final class Fast {
     static String fixQuestion(String text) {
         String t = text.trim();
         if (!t.endsWith(".") || t.endsWith("..")) return text;
-        String last = bareSentence(lastSentence(t));
-        if (last.isEmpty() || !VoiceText.question(last)) return text;
+        String sent = lastSentence(t);
+        String last = stripTail(bareSentence(sent));
+        int comma = sent.lastIndexOf(',');
+        String clause = comma >= 0 ? stripTail(bareSentence(sent.substring(comma + 1))) : "";
+        boolean q = (!last.isEmpty() && VoiceText.question(last)) || (clause.split(" ").length >= 2 && VoiceText.question(clause));
+        if (!q) return text;
         return t.substring(0, t.length() - 1) + "?";
     }
 
@@ -920,10 +926,27 @@ public final class Fast {
 
     static String googlePunctuation(VietKeyboardService s, String text) {
         if (!text.matches("(?s).*[.?!]\\s*$")) return text; // Google khong tra dau cau: de logic cu xu ly
-        text = fixQuestion(text);
         android.view.inputmethod.InputConnection ic = s.getCurrentInputConnection();
-        if (ic == null) return text;
+        if (ic == null) return fixQuestion(text);
         CharSequence before = ic.getTextBeforeCursor(160, 0);
+        if (before != null && isTail(text)) {
+            String b = before.toString();
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("([.?!])(\\s?)$").matcher(b);
+            if (m.find()) {
+                String prev = stripTail(bareSentence(lastSentence(b.substring(0, m.start()))));
+                String punct = m.group(1).equals("?") || VoiceText.question(prev) ? "?" : m.group(1);
+                String tail = bareSentence(text);
+                ic.beginBatchEdit();
+                try {
+                    ic.deleteSurroundingText(m.group(0).length(), 0);
+                    ic.commitText(" " + tail + punct + " ", 1);
+                } finally {
+                    ic.endBatchEdit();
+                }
+                return "";
+            }
+        }
+        text = fixQuestion(text);
         if (before != null && joinWithComma(before.toString(), text)) {
             String b = before.toString();
             int cut = b.endsWith(". ") ? 2 : 1;
@@ -962,5 +985,30 @@ public final class Fast {
                 }
             }
         }, 1000);
+    }
+
+    // ---------------------------------------------------------------- giong noi: loi goi / tieu tu cuoi cau bi tach sang luot sau
+    static final java.util.regex.Pattern TAIL = java.util.regex.Pattern.compile(
+            "(?:anh|chị|em|cô|chú|bác|ông|bà|con|cháu|bạn|mẹ|bố|ba|má|thầy|cưng)(?: (?:ạ|nhé|nha|ơi))?|ạ|nhé|nha|nhỉ|hả|à");
+
+    /** Bo cac tu goi o cuoi ("... anh oi", "... chi a") de nhan dien cau hoi. */
+    static String stripTail(String bare) {
+        String[] w = bare.split(" ");
+        int n = w.length;
+        while (n > 2 && (VoiceText.TRAILERS.contains(w[n - 1]))) n--;
+        return n == w.length ? bare : String.join(" ", java.util.Arrays.copyOf(w, n));
+    }
+
+    /** Luot chi gom loi goi/tieu tu ("Chi.", "Anh a.") -> gan vao cuoi cau truoc: "... vay chi?" */
+    static boolean isTail(String text) {
+        String b = bareSentence(text);
+        return !b.isEmpty() && TAIL.matcher(b).matches();
+    }
+
+    // dem loi 11 lien tiep (bo nhan chua san sang): thu lai nhanh, khong tinh la hong
+    private static int err11;
+
+    public static boolean retry11() {
+        return ++err11 <= 5;
     }
 }

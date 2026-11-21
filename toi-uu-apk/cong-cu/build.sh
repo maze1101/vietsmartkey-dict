@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-S=${S:-$(cd "$(dirname "$0")" && pwd)/work}  # thu muc lam viec: smali_nd/, tools/, fast/src/...
+set -o pipefail
+S=${S:-$(cd "$(dirname "$0")" && pwd)/work}
 cd $S
 AA=tools/b/lib/android-all-15-robolectric-14663667.jar
 q() { grep -v "JAVA_TOOL" || true; }
