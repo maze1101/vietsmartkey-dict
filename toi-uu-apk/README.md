@@ -230,3 +230,28 @@ Cách đặt dấu phẩy theo nhịp ngừng (`Fast.notePartial` / `pauseCommas
 
 Kiểm tra bằng `do-kiem/PauseTest.java`: 7/7 tình huống đúng, ví dụ "hôm nay anh bận, nên không
 đi được", "em ơi, tối nay ăn gì", "anh đi mua sữa rồi về".
+
+## 14. Bản 0.62-fast (versionCode 70): sửa theo nhật ký giọng nói thật của người dùng
+
+Đọc nhật ký từ máy thật (Honor Magic 7 Pro, MagicOS 11) thấy 3 điều:
+
+1. **Google có trả dấu câu tiếng Việt**, nhưng coi mỗi lượt nói là một câu, nên lượt nào cũng
+   kết thúc bằng dấu chấm.
+2. **Dùng lại bộ nhận (bản 0.61) bị Google từ chối:** lượt sau lỗi 11
+   (`ERROR_SERVER_DISCONNECTED`), app phải khởi động lại thêm một lần. Bản này bỏ cách đó,
+   quay về tạo bộ nhận mới cho mỗi lượt.
+3. **Lần đầu bị tắt mic là do đổi ô nhập:** câu đầu tiên chèn vào ô trống làm app đang dùng đổi ô
+   nhập, sinh ra `onFinishInputView(true)`, và app hiểu nhầm là bàn phím đóng nên huỷ nghe.
+
+Đã sửa:
+- `Fast.onFinishInputView`: khi đang nghe mà ô nhập đổi, chờ 1 giây. Bàn phím hiện lại thì nghe
+  tiếp; ẩn hẳn thì mới dừng.
+- `Fast.googlePunctuation`: giữ dấu câu của Google, chỉ chỉnh 3 trường hợp:
+  - câu hỏi bị đặt dấu chấm thì đổi thành dấu hỏi (dùng `VoiceText.question`, đúng 15/16 câu thử);
+  - câu trước ngắn kiểu gọi/đáp ("Anh ơi.", "Dạ.") thì nối với câu sau bằng dấu phẩy;
+  - câu sau mở đầu bằng từ nối ("nhưng", "nên", "vì", "còn", "mà"…) thì dùng dấu phẩy.
+- Đã thử bỏ dấu chấm của Google để logic cũ tự nối câu, nhưng kết quả tệ hơn (câu dính liền,
+  dấu hỏi sai), nên không dùng.
+
+Ví dụ (`do-kiem/GPTest.java`): "Anh ơi, tối nay mấy giờ anh về? Em nấu cơm rồi." · "Dạ, em
+gửi rồi ạ. Anh kiểm tra giúp em, nhưng file hơi nặng."

@@ -35,12 +35,8 @@ delegate('KeyboardView', 'learnSpaceMiss', '', 'V', False, 'learnSpaceMiss')
 
 # 11) Giọng nói: giữ bộ nhận giữa các lượt, chờ lâu hơn, không tắt sớm khi im lặng, dấu phẩy theo nhịp ngừng
 delegate('VietKeyboardService', 'voicePartial', 'Ljava/lang/String;', 'V', False, 'voicePartial')
+delegate('VietKeyboardService', 'onFinishInputView', 'Z', 'V', False, 'onFinishInputView')
 s = read('VoiceInput')
-s = must_replace(s, '.field private recognizer:Landroid/speech/SpeechRecognizer;', '.field recognizer:Landroid/speech/SpeechRecognizer;', 1, 'VoiceInput.recognizer package')
-s = must_replace(s, '.field private onDevice:Z', '.field onDevice:Z', 1, 'VoiceInput.onDevice package')
-s = must_replace(s, '    invoke-direct {p0}, Lvn/personal/vietkey/VoiceInput;->create()V\n',
-    '    invoke-static {p0}, %s->needCreate(Lvn/personal/vietkey/VoiceInput;)Z\n    move-result v2\n    if-eqz v2, :vsk_reuse\n'
-    '    invoke-direct {p0}, Lvn/personal/vietkey/VoiceInput;->create()V\n    invoke-static {p0}, %s->created(Lvn/personal/vietkey/VoiceInput;)V\n    :vsk_reuse\n' % (F, F), 1, 'listen: reuse recognizer')
 s = must_replace(s, '    const-wide/16 v4, 0x5dc\n', '    const-wide/16 v4, 0x9c4\n', 1, 'complete silence 1500 -> 2500 ms')
 s = must_replace(s, '    const-wide/16 v4, 0x4b0\n', '    const-wide/16 v4, 0x7d0\n', 1, 'possibly complete silence 1200 -> 2000 ms')
 write('VoiceInput', s)

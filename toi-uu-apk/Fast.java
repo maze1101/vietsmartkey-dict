@@ -724,6 +724,7 @@ public final class Fast {
         if (log) VoiceInput.log(s, "Google: " + cut(text) + (pauses.isEmpty() ? "" : "  [ngat: " + pauses + "]"));
         if (text != null) text = pauseCommas(s.data, text, pauses);
         resetPauses();
+        if (text != null) text = googlePunctuation(s, text);
         s.voiceCommitOrig(text);
         if (log) {
             android.view.inputmethod.InputConnection ic = s.getCurrentInputConnection();
@@ -873,19 +874,93 @@ public final class Fast {
         s.voicePartialOrig(text);
     }
 
-    // ---------------------------------------------------------------- giong noi: giu bo nhan giua cac luot
-    private static Object createdRec;
-    private static boolean createdOnDevice;
+    // ---------------------------------------------------------------- giong noi: chinh dau cau Google tra ve
+    static final java.util.Set<String> JOIN_NEXT = new java.util.HashSet<>(java.util.Arrays.asList(
+            "nhưng", "nên", "vì", "còn", "mà", "hay", "hoặc", "kẻo", "chứ"));
 
-    /** listen(): chi tao bo nhan moi khi chua co, hoac khi da doi loai (tren may / Google). */
-    public static boolean needCreate(VoiceInput v) {
-        Object r = v.recognizer;
-        return r == null || r != createdRec || createdOnDevice != v.onDevice;
+    static String lastSentence(String t) {
+        String x = t.trim();
+        int i = Math.max(x.lastIndexOf('.', x.length() - 2), Math.max(x.lastIndexOf('?', x.length() - 2), x.lastIndexOf('!', x.length() - 2)));
+        return x.substring(i + 1).trim();
     }
 
-    public static void created(VoiceInput v) {
-        createdRec = v.recognizer;
-        createdOnDevice = v.onDevice;
-        resetPauses();
+    static String bareSentence(String t) {
+        StringBuilder b = new StringBuilder();
+        for (String w : t.trim().split("\\s+")) {
+            String x = VoiceText.bare(w);
+            if (!x.isEmpty()) b.append(x).append(' ');
+        }
+        return b.toString().trim();
+    }
+
+    /** Cau hoi ma Google dat dau cham -> dau hoi. */
+    static String fixQuestion(String text) {
+        String t = text.trim();
+        if (!t.endsWith(".") || t.endsWith("..")) return text;
+        String last = bareSentence(lastSentence(t));
+        if (last.isEmpty() || !VoiceText.question(last)) return text;
+        return t.substring(0, t.length() - 1) + "?";
+    }
+
+    /** Cau truoc ngan kieu goi/dap ("Anh oi.", "Da.") hoac cau sau mo dau bang tu noi -> doi dau cham truoc thanh phay. */
+    static boolean joinWithComma(String before, String next) {
+        if (before == null) return false;
+        String b = before.toString();
+        if (!b.endsWith(". ") && !b.endsWith(".")) return false;
+        String prev = bareSentence(lastSentence(b.trim().substring(0, b.trim().length() - 1)));
+        String[] pw = prev.isEmpty() ? new String[0] : prev.split(" ");
+        String[] nw = bareSentence(next).split(" ");
+        if (nw.length == 0 || nw[0].isEmpty() || pw.length == 0) return false;
+        if (pw.length <= 3) {
+            if (pw[pw.length - 1].equals("ơi")) return true;
+            for (String o : VoiceText.OPENERS) if (o.equals(prev)) return true;
+        }
+        return JOIN_NEXT.contains(nw[0]) && pw.length >= 2;
+    }
+
+    static String googlePunctuation(VietKeyboardService s, String text) {
+        if (!text.matches("(?s).*[.?!]\\s*$")) return text; // Google khong tra dau cau: de logic cu xu ly
+        text = fixQuestion(text);
+        android.view.inputmethod.InputConnection ic = s.getCurrentInputConnection();
+        if (ic == null) return text;
+        CharSequence before = ic.getTextBeforeCursor(160, 0);
+        if (before != null && joinWithComma(before.toString(), text)) {
+            String b = before.toString();
+            int cut = b.endsWith(". ") ? 2 : 1;
+            ic.beginBatchEdit();
+            try {
+                ic.deleteSurroundingText(cut, 0);
+                ic.commitText(", ", 1);
+            } finally {
+                ic.endBatchEdit();
+            }
+        }
+        return text;
+    }
+
+    // ---------------------------------------------------------------- giong noi: o nhap doi giua chung thi khong tat mic
+    /** = VietKeyboardService.onFinishInputView(); khi app doi o nhap (finishing=true) ma van dang nghe,
+     *  cho 1 giay: ban phim hien lai thi nghe tiep, an han thi moi tat. */
+    public static void onFinishInputView(final VietKeyboardService s, boolean finishing) {
+        final VoiceInput v = s.voice;
+        if (!finishing || v == null || !v.listening) {
+            s.onFinishInputViewOrig(finishing);
+            return;
+        }
+        s.voice = null;
+        try {
+            s.onFinishInputViewOrig(finishing);
+        } finally {
+            s.voice = v;
+        }
+        VoiceInput.log(s, "ô nhập đổi, vẫn nghe");
+        s.learningHandler.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (s.voice == v && v.listening && !s.isInputViewShown()) {
+                    VoiceInput.log(s, "bàn phím đã ẩn, dừng nghe");
+                    v.cancel();
+                }
+            }
+        }, 1000);
     }
 }
