@@ -710,4 +710,22 @@ public final class Fast {
             s.learnedWord = "";
         }
     }
+
+    // ---------------------------------------------------------------- giong noi: ghi chu Google tra ve vao nhat ky (tu chon)
+    static String cut(CharSequence t) {
+        if (t == null) return "(null)";
+        String s = t.toString().replace('\n', ' ');
+        return s.length() > 220 ? "…" + s.substring(s.length() - 220) : s;
+    }
+
+    /** = VietKeyboardService.voiceCommit(); neu bat "voiceLogText" thi ghi chu Google tra ve va chu da chen. */
+    public static void voiceCommit(VietKeyboardService s, String text) {
+        boolean log = s.getSharedPreferences("settings", 0).getBoolean("voiceLogText", false);
+        if (log) VoiceInput.log(s, "Google: " + cut(text));
+        s.voiceCommitOrig(text);
+        if (log) {
+            android.view.inputmethod.InputConnection ic = s.getCurrentInputConnection();
+            VoiceInput.log(s, "Đã chèn: " + cut(ic == null ? null : ic.getTextBeforeCursor(220, 0)));
+        }
+    }
 }

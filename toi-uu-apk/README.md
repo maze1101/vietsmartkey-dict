@@ -180,3 +180,14 @@ Bản đổi tên gói trước chỉ đổi tên gói trong `AndroidManifest.xm
 (`resources.arsc`) vẫn mang tên `vn.personal.vietkey`. Launcher nào tra icon theo tên gói sẽ không
 khớp (MagicOS vẽ icon thành ô vuông nền trắng). Bản này đổi luôn tên gói trong bảng tài nguyên
 thành `vn.personal.vietkey.fast`. Code của app không tra tài nguyên theo tên, nên không ảnh hưởng gì.
+
+## 11. Bản 0.59-fast (versionCode 67): nhật ký giọng nói
+- Thêm công tắc ở Cài đặt › Nhập bằng giọng nói: **"Ghi chữ Google nhận được vào nhật ký"**
+  (mặc định tắt). Khi bật, mỗi lượt nói ghi 2 dòng vào "Nhật ký giọng nói":
+  - `Google: …` là chữ Google trả về, còn nguyên (để biết Google có tự thêm dấu câu tiếng Việt không);
+  - `Đã chèn: …` là chữ sau khi app xử lý.
+- Bộ đo `do-kiem/VoiceEval.java` mô phỏng đọc 1.123 câu báo chí (UD-VTB), cắt lượt theo chỗ ngắt hơi.
+  Kết quả khi Google không trả dấu câu: dấu chấm F1 54,6, dấu phẩy F1 33,7, viết hoa đầu câu 44%.
+- Đã thử dùng cặp từ để biết chỗ ngắt hơi là "nối liền" hay "ngắt câu", nhưng không cải thiện
+  (F1 61,1 → 60,4), nên bỏ. Lỗi chính là chỗ thật sự hết câu lại thành phẩy hoặc mất dấu.
+  Muốn sửa đúng phần này cần mẫu nói thật của người dùng.
