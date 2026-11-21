@@ -191,3 +191,23 @@ thành `vn.personal.vietkey.fast`. Code của app không tra tài nguyên theo t
 - Đã thử dùng cặp từ để biết chỗ ngắt hơi là "nối liền" hay "ngắt câu", nhưng không cải thiện
   (F1 61,1 → 60,4), nên bỏ. Lỗi chính là chỗ thật sự hết câu lại thành phẩy hoặc mất dấu.
   Muốn sửa đúng phần này cần mẫu nói thật của người dùng.
+
+## 12. Bản 0.60-fast (versionCode 68): chạm nhầm phím cách thành b/n
+Hiện tượng: muốn bấm phím cách nhưng ngón cái chạm trúng mép dưới phím b/n, nên ra "anhn".
+App gốc chỉ học chiều ngược lại (muốn b/n mà trúng phím cách: `spaceGuard`).
+
+Cách sửa (`Fast.hit`), theo kiểu iOS kết hợp vị trí chạm với ngữ cảnh. Một cú chạm rơi vào
+mép dưới phím c/v/b/n ngay trên phím cách được tính là phím cách khi đủ cả hai điều kiện:
+- chữ đang gõ đã là một từ trọn vẹn;
+- chữ cái vừa chạm gần như không thể nối tiếp từ đó (xác suất < 0,02).
+
+Vùng mép mặc định là 30% chiều cao phím, tự học theo thói quen:
+- gõ b/n → xoá → gõ cách: vùng mép rộng ra, tối đa 45%;
+- app đổi thành phím cách → xoá → gõ lại chữ: vùng mép hẹp lại.
+
+Đo trên 27.000 từ thật (`do-kiem/SpaceSim.java`):
+
+| | Kết quả |
+|---|---|
+| Hết từ, chạm nhầm b/n: nhận ra đúng là phím cách | 86% |
+| Muốn gõ c/v/b/n giữa từ: bị hiểu nhầm (chỉ khi chạm đúng vùng mép dưới) | 0,07% |

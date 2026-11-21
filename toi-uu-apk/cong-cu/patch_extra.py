@@ -28,6 +28,11 @@ s = s[:j] + ins + s[j + len(call):]
 write('SettingsActivity', s)
 log.append('settings toggle voiceLogText')
 
+# 10) Phím cách: chạm mép dưới z..m khi từ đã trọn -> phím cách, có tự học
+delegate('KeyboardView', 'hit', 'FF', 'Lvn/personal/vietkey/KeyboardView$Key;', False, 'hit')
+delegate('KeyboardView', 'learnLetterMiss', '', 'V', False, 'learnLetterMiss')
+delegate('KeyboardView', 'learnSpaceMiss', '', 'V', False, 'learnSpaceMiss')
+
 # 8) Bỏ các hàm gốc không còn ai gọi
 for cls, sig in [('PersonalData', 'suggestOrig(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)Ljava/util/List;'),
                  ('PersonalData', 'nextKeyOddsOrig(Ljava/lang/String;)[F'),

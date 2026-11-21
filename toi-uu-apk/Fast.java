@@ -728,4 +728,80 @@ public final class Fast {
             VoiceInput.log(s, "Đã chèn: " + cut(ic == null ? null : ic.getTextBeforeCursor(220, 0)));
         }
     }
+
+    // ---------------------------------------------------------------- phim cach: cham mep duoi z..m khi tu da tron (kieu iOS)
+    static final String BOTTOM_ROW = "zxcvbnm";
+    private static KeyboardView lgView;
+    private static float letterGuard = -1f;   // phan chieu cao phim (0..0.45) o mep duoi duoc tinh la phim cach
+    private static boolean lastSpaceWasRemap;
+
+    static float letterGuard(KeyboardView v) {
+        if (lgView != v || letterGuard < 0f) {
+            lgView = v;
+            float g = v.themePrefs != null ? 0f : v.touchPrefs().getFloat("touchAimLetterGuard", 0f);
+            letterGuard = Math.max(0f, Math.min(0.45f, g));
+        }
+        return letterGuard;
+    }
+
+    static void saveLetterGuard(KeyboardView v) {
+        if (v.themePrefs == null) v.touchPrefs().edit().putFloat("touchAimLetterGuard", letterGuard).apply();
+    }
+
+    /** = KeyboardView.hit(); them: cham mep duoi phim z..m ngay tren phim cach, khi chu dang go da la tu tron
+     *  va chu cai do kho noi tiep, thi tinh la phim cach. Vung mep nay tu hoc rong/hep theo thoi quen. */
+    public static KeyboardView.Key hit(KeyboardView v, float x, float y) {
+        KeyboardView.Key k = v.hitOrig(x, y);
+        try {
+            if (k != null && " ".equals(k.code)) lastSpaceWasRemap = false;
+            if (k == null || k.special || k.code == null || k.code.length() != 1 || BOTTOM_ROW.indexOf(k.code.charAt(0)) < 0) return k;
+            VietKeyboardService s = v.service;
+            if (s == null || s.page != 0 || s.secure || s.numericOnly || v.themePrefs != null || s.raw.length() == 0) return k;
+            KeyboardView.Key sp = null;
+            for (int i = 0, n = v.keys.size(); i < n; i++) {
+                KeyboardView.Key q = v.keys.get(i);
+                if (" ".equals(q.code)) { sp = q; break; }
+            }
+            if (sp == null || sp.r == null || k.r == null || x < sp.r.left || x > sp.r.right) return k;
+            if (sp.r.top - k.r.bottom > v.dp(14f)) return k; // phim cach phai nam ngay ben duoi
+            float h = k.r.height();
+            float fromBottom = k.r.bottom - y;
+            if (fromBottom < 0f || fromBottom > h * 0.45f) return k;
+            String comp = s.compose();
+            boolean known = s.data != null && comp.length() > 0 && s.data.isKnown(comp);
+            float[] odds = s.nextKeyOdds();
+            int idx = k.code.charAt(0) - 'a';
+            float p = (odds != null && idx >= 0 && idx < 26) ? odds[idx] : (known ? 0f : 1f);
+            // Tu da tron va chu cai nay gan nhu khong the noi tiep (do tren 27.000 tu that: nhan ra 86% lan cham nham,
+            // hieu nham chu that 0,07%). Vung mep mac dinh 30% chieu cao phim, tu hoc rong toi 45%.
+            if (!known || p >= 0.02f) return k;
+            float zone = h * Math.max(0.30f, letterGuard(v));
+            if (fromBottom < zone) {
+                lastSpaceWasRemap = true;
+                return sp;
+            }
+        } catch (RuntimeException ignored) {
+        }
+        return k;
+    }
+
+    /** Go chu z..m, xoa, roi go cach: thuc ra muon phim cach -> noi rong vung mep duoi. */
+    public static void learnLetterMiss(KeyboardView v) {
+        v.learnLetterMissOrig();
+        if (!v.learnTouch() || v.lastLetterFromGuard) return;
+        float b = v.lastLetterBottom, h = v.lastLetterHeight;
+        if (b < 0f || h <= 0f || b >= h * 0.45f) return;
+        float g = letterGuard(v);
+        letterGuard = Math.min(0.45f, Math.max(g + 0.04f, Math.min(0.45f, b / h + 0.03f) * 0.5f + g * 0.5f));
+        saveLetterGuard(v);
+    }
+
+    /** Go cach (do vung mep), xoa, roi go chu: thuc ra muon chu -> thu hep vung mep. */
+    public static void learnSpaceMiss(KeyboardView v) {
+        v.learnSpaceMissOrig();
+        if (!v.learnTouch() || !lastSpaceWasRemap) return;
+        letterGuard = Math.max(0f, letterGuard(v) - 0.08f);
+        lastSpaceWasRemap = false;
+        saveLetterGuard(v);
+    }
 }
