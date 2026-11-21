@@ -211,3 +211,22 @@ Vùng mép mặc định là 30% chiều cao phím, tự học theo thói quen:
 |---|---|
 | Hết từ, chạm nhầm b/n: nhận ra đúng là phím cách | 86% |
 | Muốn gõ c/v/b/n giữa từ: bị hiểu nhầm (chỉ khi chạm đúng vùng mép dưới) | 0,07% |
+
+## 13. Bản 0.61-fast (versionCode 69): giọng nói liên tục, có dấu phẩy
+
+| Lỗi người dùng gặp | Nguyên nhân trong code | Đã sửa |
+|---|---|---|
+| Lần bật đầu chỉ nhận một câu rồi tắt | Chỉ chịu 2 lượt im lặng liên tiếp (lỗi 6/7) là tắt mic | Cho tới 5 lượt |
+| Tự bật lại nhiều lần, ngắt nhịp, có tiếng bíp | Mỗi lượt huỷ và tạo lại `SpeechRecognizer` | Giữ bộ nhận giữa các lượt (`Fast.needCreate`); chỉ tạo lại khi lỗi hoặc đổi loại |
+| Ngắt nhanh quá | Chốt câu sau 1,5 giây im (1,2 giây nếu có vẻ đã xong) | 2,5 / 2,0 giây |
+| Toàn dấu chấm, không có phẩy | Google không trả dấu câu tiếng Việt | Xem bên dưới |
+
+Cách đặt dấu phẩy theo nhịp ngừng (`Fast.notePartial` / `pauseCommas`):
+- Chữ tạm thời ngừng tăng từ 0,9 giây trở lên tức là người nói ngừng giữa câu, nên đặt dấu phẩy.
+- Bỏ qua các chỗ sau: sau hư từ ("của", "là", "với"…), trước tiểu từ ("nhé", "ạ", "không"…),
+  sau động từ cần tân ngữ ("mua", "ăn"…), và giữa cặp từ hay đi liền.
+- Nếu Google đã tự trả dấu câu thì giữ nguyên.
+- Khi bật nhật ký giọng nói, mỗi dòng ghi thêm vị trí các chỗ ngừng.
+
+Kiểm tra bằng `do-kiem/PauseTest.java`: 7/7 tình huống đúng, ví dụ "hôm nay anh bận, nên không
+đi được", "em ơi, tối nay ăn gì", "anh đi mua sữa rồi về".

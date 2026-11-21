@@ -721,7 +721,9 @@ public final class Fast {
     /** = VietKeyboardService.voiceCommit(); neu bat "voiceLogText" thi ghi chu Google tra ve va chu da chen. */
     public static void voiceCommit(VietKeyboardService s, String text) {
         boolean log = s.getSharedPreferences("settings", 0).getBoolean("voiceLogText", false);
-        if (log) VoiceInput.log(s, "Google: " + cut(text));
+        if (log) VoiceInput.log(s, "Google: " + cut(text) + (pauses.isEmpty() ? "" : "  [ngat: " + pauses + "]"));
+        if (text != null) text = pauseCommas(s.data, text, pauses);
+        resetPauses();
         s.voiceCommitOrig(text);
         if (log) {
             android.view.inputmethod.InputConnection ic = s.getCurrentInputConnection();
@@ -803,5 +805,87 @@ public final class Fast {
         letterGuard = Math.max(0f, letterGuard(v) - 0.08f);
         lastSpaceWasRemap = false;
         saveLetterGuard(v);
+    }
+
+    // ---------------------------------------------------------------- giong noi: dau phay theo nhip ngung khi noi
+    /** Chu tam thoi khong tang trong chung nay ms = nguoi noi ngung giua cau. */
+    public static long pauseMs = 900;
+    static final java.util.ArrayList<Integer> pauses = new java.util.ArrayList<>();
+    private static String lastPartial = "";
+    private static long lastChange = -1;
+    static final java.util.Set<String> NO_COMMA_AFTER = new java.util.HashSet<>(java.util.Arrays.asList(
+            "của", "là", "với", "cho", "để", "và", "các", "những", "một", "rất", "đã", "sẽ", "đang", "có", "bị", "được",
+            "thì", "mà", "nếu", "khi", "vì", "từ", "đến", "tới", "ở", "trong", "trên", "dưới", "về", "theo", "như", "bằng", "hơi", "khá", "quá"));
+    static final java.util.Set<String> NO_COMMA_BEFORE = new java.util.HashSet<>(java.util.Arrays.asList(
+            "của", "là", "thì", "mà", "với", "cho", "để", "được", "bị", "này", "kia", "đó", "ấy", "nhé", "nha", "ạ", "à", "ơi",
+            "không", "chưa", "rồi", "nữa", "lắm", "quá", "luôn", "thôi", "hả", "nhỉ", "chứ", "vậy", "thế", "đâu", "gì", "nào", "sao"));
+
+    static void resetPauses() {
+        pauses.clear();
+        lastPartial = "";
+        lastChange = -1;
+    }
+
+    static int words(String t) {
+        String x = t.trim();
+        return x.isEmpty() ? 0 : x.split("\\s+").length;
+    }
+
+    /** Ghi nhan mot ket qua tam thoi cua Google tai thoi diem now (ms). */
+    static void notePartial(String text, long now) {
+        if (text == null || text.trim().isEmpty()) { resetPauses(); return; }
+        if (text.equals(lastPartial)) return;
+        int before = words(lastPartial);
+        if (before > 0 && lastChange >= 0 && now - lastChange >= pauseMs && words(text) > before
+                && (pauses.isEmpty() || pauses.get(pauses.size() - 1) < before)) {
+            pauses.add(before);
+        }
+        lastPartial = text;
+        lastChange = now;
+    }
+
+    /** Them dau phay sau cac tu ma nguoi noi da ngung (neu Google chua tu dat dau cau). */
+    static String pauseCommas(PersonalData d, String text, java.util.List<Integer> at) {
+        if (at.isEmpty() || text.matches("(?s).*[.,?!;:…].*")) return text;
+        String[] w = text.trim().split("\\s+");
+        boolean changed = false;
+        for (int k : at) {
+            if (k < 1 || k >= w.length) continue;
+            String last = VoiceText.bare(w[k - 1]), next = VoiceText.bare(w[k]);
+            if (last.isEmpty() || next.isEmpty() || NO_COMMA_AFTER.contains(last) || NO_COMMA_BEFORE.contains(next)
+                    || VoiceText.NON_FINAL.contains(last)) continue; // vd "mua | sua": ngap ngung sau dong tu can tan ngu
+            int strong = 0;
+            if (d != null) {
+                strong = d.contextCount(last, next);
+                HashMap<String, Integer> ph = d.phraseNext.get(last);
+                if (ph != null && ph.containsKey(next)) strong += 50;
+            }
+            if (strong >= 20) continue; // cap tu hay di lien: ngung do ngap ngung, khong phai het y
+            w[k - 1] = w[k - 1] + ",";
+            changed = true;
+        }
+        return changed ? String.join(" ", w) : text;
+    }
+
+    /** = VietKeyboardService.voicePartial(); ghi nhan nhip ngung de dat dau phay. */
+    public static void voicePartial(VietKeyboardService s, String text) {
+        notePartial(text, android.os.SystemClock.uptimeMillis());
+        s.voicePartialOrig(text);
+    }
+
+    // ---------------------------------------------------------------- giong noi: giu bo nhan giua cac luot
+    private static Object createdRec;
+    private static boolean createdOnDevice;
+
+    /** listen(): chi tao bo nhan moi khi chua co, hoac khi da doi loai (tren may / Google). */
+    public static boolean needCreate(VoiceInput v) {
+        Object r = v.recognizer;
+        return r == null || r != createdRec || createdOnDevice != v.onDevice;
+    }
+
+    public static void created(VoiceInput v) {
+        createdRec = v.recognizer;
+        createdOnDevice = v.onDevice;
+        resetPauses();
     }
 }
